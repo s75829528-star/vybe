@@ -1,0 +1,67 @@
+VYBE PROJECT STATUS
+Date: 2026-11-23
+
+COMPLETED
+- Fixed Jest setup by removing an obsolete Testing Library setup import.
+- Corrected search sanitization and file-size formatting to match the existing tests.
+- Updated Reanimated to v3 and removed react-native-worklets. The app uses React Native's built-in Animated API, and Track Player 4.1.2 requires the New Architecture disabled.
+- Preserved the existing Track Player patch-package patch.
+- Exported the Android JavaScript bundle successfully.
+- Ran Expo prebuild for Android with --clean.
+- Confirmed the generated manifest includes the Track Player MusicService and required foreground service, notification, and wake lock permissions.
+- Built the Android debug APK successfully.
+- Replaced the minimal README with setup, architecture, Supabase, Cloudinary, command, build, and limitation documentation.
+- Expanded .env.example to document client configuration and server-side Edge Function secret names.
+
+VERIFICATION RESULTS
+- TypeScript (`npx tsc --noEmit`): PASSED.
+- Expo lint (`npx expo lint`): PASSED.
+- Jest (`npx jest`): PASSED, 5 suites and 40 tests.
+- Android export (`npx expo export --platform android`): PASSED.
+- Database schema, RLS, and RPC suite (`scripts/db-test.sh`): PASSED.
+- Android Gradle debug build (`./gradlew assembleDebug`): PASSED.
+
+ANDROID APK
+- Path: android/app/build/outputs/apk/debug/app-debug.apk
+- Size: approximately 164 MB.
+- Android config has newArchEnabled=false.
+- Generated manifest includes MusicService, FOREGROUND_SERVICE,
+  FOREGROUND_SERVICE_MEDIA_PLAYBACK, POST_NOTIFICATIONS, and WAKE_LOCK.
+
+CONFIGURATION REQUIRED FOR LIVE BACKEND USE
+- Client .env variables:
+  EXPO_PUBLIC_SUPABASE_URL
+  EXPO_PUBLIC_SUPABASE_ANON_KEY
+  EXPO_PUBLIC_CLOUDINARY_CLOUD_NAME (optional, displayed in app information)
+- Supabase Edge Function secrets:
+  CLOUDINARY_CLOUD_NAME
+  CLOUDINARY_API_KEY
+  CLOUDINARY_API_SECRET
+- Supabase provides SUPABASE_URL, SUPABASE_ANON_KEY, and
+  SUPABASE_SERVICE_ROLE_KEY to Edge Functions. Never place the service-role key
+  or Cloudinary API secret in the client .env or Android bundle.
+- Create/sign in to an account, then grant admin access from the trusted SQL
+  editor with:
+  update public.profiles set role='admin' where id='<user-uuid>';
+
+COMMON COMMANDS
+- npm install
+- npx expo start --dev-client
+- npm run android
+- npx tsc --noEmit
+- npx expo lint
+- npx jest
+- npx expo export --platform android
+- scripts/db-test.sh
+- Android APK: npx expo prebuild -p android --clean, then
+  cd android && ./gradlew assembleDebug
+
+NOT TESTED / LIMITATIONS
+- Streaming and background playback have not been tested on an Android device.
+- Supabase sign-in and live data have not been tested against user credentials.
+- Cloudinary uploads and admin deletion have not been tested against live services.
+- Playback notification behavior has not been tested on a device.
+- Downloads remain a placeholder.
+- iOS is not a supported target.
+- Database tests use an isolated Docker PostgreSQL container, not a hosted
+  Supabase project.

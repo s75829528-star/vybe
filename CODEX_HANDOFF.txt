@@ -1,0 +1,77 @@
+You are continuing work on VYBE, an Android music streaming app in /workspaces/vybe
+(React Native / Expo SDK 54, RN 0.81.5, React 19.1, Expo Router 6, TypeScript strict,
+Supabase, Cloudinary, react-native-track-player 4.1.2, Zustand).
+
+The app is already built: all screens (auth, Home/Search/Library/Settings tabs, Now
+Playing, Queue, Album/Artist/Playlist details, protected Admin upload/edit/delete),
+services, stores, UI kit, Supabase migrations + RLS (verified passing via
+scripts/db-test.sh against Docker Postgres), and Edge Functions (cloudinary-sign,
+admin-delete-song, admin-delete-asset). `npx tsc --noEmit` and `npx expo lint` are
+clean. Do NOT redesign or rewrite existing code; finish the remaining work below.
+
+HARD RULES
+- Real functionality only. No fake songs, mock data, or placeholder buttons.
+- Never hardcode secrets; never put service-role keys or Cloudinary API secrets in
+  the client. Env vars only (.env / .env.example).
+- Do not claim any feature works until you have actually tested it. Distinguish
+  tested vs. untested in your final report.
+- Keep changes consistent with existing structure, naming, and style.
+- RNTP 4.1.2 requires newArchEnabled: false. A patch-package patch exists in
+  patches/; postinstall applies it. Do not remove it.
+
+REMAINING TASKS (in order)
+
+1. Fix and run the Jest suite.
+   - babel-preset-expo was just added to devDependencies because jest-expo could
+     not resolve it. Run `npx jest`. If suites still fail to load, fix the
+     jest/babel config (jest.config.js, babel.config.js, jest.setup.ts), not the
+     app code, unless a test reveals a real bug.
+   - Existing tests: src/lib/__tests__/format.test.ts, search.test.ts,
+     errors.test.ts; src/features/admin/__tests__/validation.test.ts;
+     src/features/player/__tests__/engine.test.ts (mocks RNTP).
+   - All tests must pass. Add tests for any pure logic you touch.
+
+2. Verify the JS bundle: `npx expo export --platform android`. Fix any export
+   errors. Do not change app behavior to satisfy the bundler unless it is a real
+   bug.
+
+3. Android build.
+   - Environment: Linux, Docker + sudo available, Node 24, npm 11. Only JDK 25 is
+     installed; no Android SDK. Install JDK 17 (e.g. apt temurin/openjdk-17) and
+     Android command-line tools + SDK (platform 35/36, build-tools, platform-tools)
+     as needed; set JAVA_HOME/ANDROID_HOME.
+   - Run `npx expo prebuild -p android --clean`, inspect android/ output: confirm
+     the Track Player service, POST_NOTIFICATIONS and foreground-service
+     permissions from plugins/withTrackPlayer.js are present in the manifest.
+   - Build a debug APK with Gradle (`cd android && ./gradlew assembleDebug`).
+     Fix build errors (Kotlin/Gradle/manifest) minimally. Report the APK path.
+   - If the toolchain cannot be installed, document exactly what failed; do not
+     fake success.
+
+4. Documentation.
+   - Replace README.md (currently only "# vybe") with a complete guide:
+     features, architecture overview, prerequisites, setup steps, env vars,
+     Supabase setup (apply supabase/migrations/*, deploy supabase/functions/*,
+     set function secrets CLOUDINARY_CLOUD_NAME / CLOUDINARY_API_KEY /
+     CLOUDINARY_API_SECRET, grant admin role:
+     `update public.profiles set role='admin' where id='<user-uuid>';`),
+     Cloudinary setup, run commands (npm install, npx expo start --dev-client,
+     npm run android, typecheck/lint/test, scripts/db-test.sh), Android build
+     instructions, and known limitations (downloads are a placeholder; iOS not
+     targeted; live backend testing requires user credentials).
+   - Ensure .env.example documents every required variable. Add any missing
+     setup docs under docs/ if helpful.
+
+5. Final delivery report (in your last message):
+   - Implemented features, files created/modified, configuration the user must
+     supply (Supabase URL + anon key, Cloudinary cloud name/API key/API secret,
+     admin account), exact run commands, and known issues.
+   - Explicitly list what was tested (typecheck, lint, Jest, DB RLS suite, export,
+     Gradle build) and what remains untested (on-device streaming, uploads,
+     notifications) because no Supabase/Cloudinary credentials or Android device
+     were provided.
+
+Acceptance: `npx tsc --noEmit`, `npx expo lint`, `npx jest`, and
+`npx expo export --platform android` all succeed; debug APK builds or the exact
+blocker is documented; README is complete; nothing is claimed working without
+evidence.

@@ -1,0 +1,27 @@
+# VYBE Supabase local configuration.
+# Functions are protected by the caller's Supabase JWT; each function also
+# re-checks the caller's profile role inside Postgres before acting.
+
+project_id = "vybe"
+
+[functions.cloudinary-sign]
+verify_jwt = true
+
+[functions.admin-delete-song]
+verify_jwt = true
+
+[functions.admin-delete-asset]
+verify_jwt = true
+
+[db]
+port = 54322
+major_version = 15
+
+[studio]
+port = 54323
+
+[api]
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
